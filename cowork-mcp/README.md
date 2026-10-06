@@ -158,6 +158,27 @@ checked against the last screenshot and refused if they fall outside it, and cli
 before any screenshot is taken is refused outright — but there is no allowlist of
 which applications may be touched. Watch the screen, or don't approve them.
 
+### Windows DPI 缩放与 Computer Use 点击坐标偏差说明
+
+在开启了高分屏缩放（如 2K 2560×1440 屏幕下开启 **150% DPI 缩放**）的 Windows 环境中，Claude 进行视觉点击可能会出现向左上方轻微偏离的现象：
+
+- **根本原因**：
+  - 屏幕物理分辨率为 `2560 × 1440`，截屏按长边上限降采样至 `1568 × 882`，缩放换算系数为 `2560 ÷ 1568 ≈ 1.6327`。
+  - Windows 系统在注入点击（`SetCursorPos` / `SendInput`）时，受系统 DPI 虚拟化机制影响，可能使用了系统 DPI 缩放比率（`1.5`）而非截屏物理降采样比例（`1.6327`）。
+  - 两者比值为 `1.5 ÷ 1.6327 ≈ 0.9187`。实际落点坐标 `≈ 给定坐标 × 0.92`，以屏幕左上角 `(0, 0)` 为原点，越靠近右下角偏离的绝对像素越多。
+- **实测表现案例**：
+  - 搜索歌曲「是你」，点击第一条结果（梦然《是你》），却命中上方或者侧边的控制按钮；
+  - 给定坐标 `(722, 727)`，实际命中了 `(665, 669)` 的上一首按钮（比例刚好为 `0.921 / 0.920`）；
+  - 给定 `(887, 31)` 想点右上角关闭，命中的是最小化按钮；
+  - 给定 `(100, 287)` 想选侧栏某项，实际高亮了 `y ≈ 264` 那一行；
+  - 给定 `(736, 700)` 想点搜索栏，结果落点在下方的迷你播放器上。
+- **⚠️ 关键排查提示（cursor_position）**：
+  - 调用 `cursor_position` 回读出的坐标是理论换算后的数值（如 `(1202, 1143)`），与换算预期完全一致，**无法反映出物理落点的 0.92 偏移**。因此请**绝对不要**使用 `cursor_position` 来断定点击是否命中目标！
+- **应对与补偿建议**：
+  - **视觉核验**：操作后通过返回的新截屏观察 UI 响应状态。
+  - **坐标补偿**：如果发现点击偏向左上方，可以在 Claude 提示词或坐标参数中主动对目标坐标乘以 `1.087`（即 `目标坐标 ÷ 0.92`），或点击目标按钮稍微偏右下的位置。
+  - **使用 Zoom**：对细小按钮可先调用 `zoom` 放大目标局部区域，降低全局缩放系数带来的绝对像素漂移。
+
 ## Configuration
 
 All optional, all via the `env` block of the config entry.

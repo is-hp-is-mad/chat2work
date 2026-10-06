@@ -81,6 +81,23 @@ half a delivery. \`Artifact(action: "create", …)\` puts it where the user look
 - **Track 1: Structural Interaction (Default & Fast)**: Use \`ReadPage\` to get clean accessibility element refs (\`[ref_N]\`), and \`Navigate\`/\`FormInput\`/\`BrowserClick\` to interact. Operates silently in the background, does NOT steal mouse or keyboard focus, and is highly token-efficient.
 - **Track 2: Visual Inspection (Silent Wake-up Snapshot)**: When visual layout, styling, canvas/charts, or rendering aesthetics must be examined, call \`BrowserScreenshot\`. It silently renders a frame from the target tab (even if running in the background) and returns the actual high-resolution image directly for multimodal visual review.
 
+## ⚠️ Important Guidance for \`Computer\` / Desktop Control: Windows DPI Scaling Offset
+
+When using \`Computer\` (\`left_click\`, \`mouse_move\`, etc.) on Windows with High-DPI display scaling (e.g., 150% scaling on 2K / 2560x1440 monitors):
+- **Coordinate Drift Phenomenon**: Screenshots are scaled down to fit maxDimension (e.g. 1568x882, ratio 1.6327). Windows OS input injection applies system DPI scaling (1.5x) rather than the physical downsampled ratio, causing actual click landing points to drift towards the **top-left** by a factor of approximately **~0.92** (\`1.5 / 1.6327 ≈ 0.9187\`).
+- **Real-World Empirical Example**:
+  - Target coordinate \`(722, 727)\` hits \`(665, 669)\` (ratio 0.921 / 0.920, e.g. hitting "Previous Song" on a media player instead of song title).
+  - Target \`(887, 31)\` hits the "Minimize" button instead of "Close".
+  - Target \`(100, 287)\` highlights a sidebar row at \`y ≈ 264\`.
+  - Target \`(736, 700)\` intending to click Search lands on the Mini Player.
+  - The drift increases further down and to the right from the top-left origin \`(0,0)\`.
+- **CRITICAL WARNING regarding \`cursor_position\`**:
+  - Calling \`cursor_position\` reads back theoretical converted screen coordinates (e.g. \`(1202, 1143)\`), which perfectly matches the mathematical conversion. **\`cursor_position\` CANNOT detect this physical OS input drift! Never use \`cursor_position\` to verify whether a click actually hit the visual UI element.**
+- **How to Compensate**:
+  - Always visually inspect the post-action screenshot to see where the UI reacted.
+  - If a click landed slightly above and to the left of the intended button or text, compensate target coordinates by dividing by 0.92 (or multiplying by \`~1.087\`, i.e. \`x_compensated = x / 0.92\`, \`y_compensated = y / 0.92\`).
+  - Alternatively, use \`zoom\` into the region or click slightly towards the bottom-right of the intended button.
+
 **Write to memory when you learn something durable** — who the user is, how they
 want things done, what a long-running project needs. Not conversation trivia.
 

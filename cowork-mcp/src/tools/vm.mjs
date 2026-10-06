@@ -83,7 +83,7 @@ export function registerVmTools(server) {
     {
       title: 'Official VM status',
       description:
-        'Check the status of the official Claude Cowork Linux MicroVM (mounted state, idle timeout, preinstalled tools).',
+        'Check the status of the optional official Claude Cowork Linux MicroVM (mounted state, idle timeout, preinstalled tools). Note: Cowork operates 100% host-native by default — this VM is completely optional.',
       inputSchema: {},
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
@@ -95,7 +95,7 @@ export function registerVmTools(server) {
     {
       title: 'Mount or unmount official VM',
       description:
-        'Mount or unmount the official Claude Cowork Linux MicroVM. Automatically auto-unmounts after inactivity.',
+        'Mount or unmount the optional official Claude Cowork Linux MicroVM. Automatically auto-unmounts after inactivity.',
       inputSchema: {
         action: z.enum(['mount', 'unmount']).describe('"mount" to attach VM, "unmount" to detach.'),
       },
@@ -109,7 +109,7 @@ export function registerVmTools(server) {
     {
       title: 'Run command in official Cowork VM',
       description:
-        'Execute a command inside the official Claude Cowork Linux MicroVM (Ubuntu 22.04 with LibreOffice, Poppler, Pandoc, Python 3.10 and Node.js). Automatically auto-mounts on demand.',
+        'Execute a command inside the optional official Claude Cowork Linux MicroVM (Ubuntu 22.04). Use Bash for ordinary host shell commands; only use VMRun when explicitly requested to run in the optional official Linux VM bundle.',
       inputSchema: {
         command: z.string().describe('Shell command to run inside the official VM environment.'),
       },

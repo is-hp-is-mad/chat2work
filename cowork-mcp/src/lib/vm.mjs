@@ -43,12 +43,14 @@ export function getOfficialVhdxPath() {
     const p = path.join(process.env.APPDATA, 'Claude', 'vm_bundles', 'claudevm.bundle', 'rootfs.vhdx');
     if (fs.existsSync(p)) return p;
   }
-  // 3. Pure local standalone backup locations
-  const backups = [
-    'D:\\Claude_Local_Backup\\claudevm.bundle\\rootfs.vhdx',
+  // 3. Project-local portable directory (cowork-mcp/vm/rootfs.vhdx or cowork-mcp/vm/claudevm.bundle/rootfs.vhdx)
+  const projectVm = [
+    path.join(ROOT, 'vm', 'rootfs.vhdx'),
+    path.join(ROOT, 'vm', 'claudevm.bundle', 'rootfs.vhdx'),
     path.join(ROOT, 'backup-vm', 'claudevm.bundle', 'rootfs.vhdx'),
+    'D:\\Claude_Local_Backup\\claudevm.bundle\\rootfs.vhdx',
   ];
-  for (const b of backups) {
+  for (const b of projectVm) {
     try {
       if (fs.existsSync(b)) return b;
     } catch {}

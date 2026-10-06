@@ -204,6 +204,19 @@ node scripts/doctor.mjs
 ```
 *(看到所有检查项显示 `[OK]` 即表示手动安装完全成功)*
 
+##### 6. （可选）官方 Cowork 虚拟机镜像提取与离线备灾
+虽然 `cowork-mcp` 默认在宿主机原生直接运行（免虚拟机），但若你需要官方 Linux MicroVM 容器环境（`VMStatus`, `VMMount`, `VMRun`），并担心未来官方下架镜像，可一键提取备份：
+```bash
+npm run backup-vm
+# 或指定备份目录：node scripts/backup-vm.mjs --dest D:\your_vm_backup
+```
+- **手动安装与离线放置路径**：
+  若未来从第三方网盘重新下载了 `rootfs.vhdx` (8.5GB) 镜像，只需放置在以下任意目录，服务端即可自动探测加载：
+  1. `cowork-mcp\vm\rootfs.vhdx`（项目随身便携目录，推荐）
+  2. `%APPDATA%\Claude\vm_bundles\claudevm.bundle\rootfs.vhdx`（官方系统缓存路径）
+  3. 通过环境变量 `COWORK_VM_ROOTFS=D:\any_path\rootfs.vhdx` 任意指定。
+- **本地依赖 EXE**：`chrome-native-host.exe` 已默认内置于 `cowork-mcp\bin\` 目录，永不丢失。
+
 ---
 
 ### 第三步：重启 Claude Desktop 并体验

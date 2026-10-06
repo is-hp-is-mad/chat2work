@@ -173,6 +173,26 @@ which applications may be touched. Watch the screen, or don't approve them.
 - **⚠️ 避坑提醒**：
   - `cursor_position` 回读的是系统理论坐标，不能体现 OS 内部输入虚拟化落点，不要将 `cursor_position` 作为物理点击是否准确的判定依据。
 
+## 📦 官方 Cowork 虚拟机镜像提取与离线手动安装指南
+
+虽然 `cowork-mcp` 默认在宿主机 100% 原生运行（无需虚拟机），但若你想体验或挂载官方 Ubuntu 22.04 容器镜像（`VMStatus`, `VMMount`, `VMRun`），我们提供了完整的提取与离线放置机制：
+
+### 1. 一键提取/备份本机官方镜像（避免官方未来下架）
+只需运行我们编写的提取工具：
+```bash
+npm run backup-vm
+# 或者：node scripts/backup-vm.mjs --dest D:\your_backup_dir
+```
+该命令会自动检测 Claude Desktop 官方缓存的 `rootfs.vhdx` (约 8.5GB) 与 `chrome-native-host.exe`，并完整备份至指定目录，且带有实时进度条。
+
+### 2. 离线/手动安装路径（镜像与 EXE 放置位置）
+如果今后从网盘、移动硬盘或其它机器获取了 `rootfs.vhdx` 和 `chrome-native-host.exe`，服务端的**自动探测优先级**如下，放到以下任意位置均可被永久识别：
+
+| 依赖文件 | 推荐放置路径（优先级从高到低） | 说明 |
+| :--- | :--- | :--- |
+| **`rootfs.vhdx`**<br>(8.5GB 虚拟机镜像) | 1. 环境变量：`COWORK_VM_ROOTFS=D:\any_path\rootfs.vhdx`<br>2. 官方标准路径：`%APPDATA%\Claude\vm_bundles\claudevm.bundle\rootfs.vhdx`<br>3. 工程便携路径：`cowork-mcp\vm\rootfs.vhdx` (或 `vm\claudevm.bundle\rootfs.vhdx`)<br>4. 本地备份路径：`D:\Claude_Local_Backup\claudevm.bundle\rootfs.vhdx` | 放置后通过 `VMStatus` 工具或 `doctor.bat` 即可实时查看就绪状态 |
+| **`chrome-native-host.exe`**<br>(浏览器本地消息代理) | 1. 工程打包目录：`cowork-mcp\bin\chrome-native-host.exe` (已内置)<br>2. 系统注册目录：`%APPDATA%\Claude\ChromeNativeHost\chrome-native-host.exe`<br>3. 官方安装目录：`%LOCALAPPDATA%\Programs\Claude\resources\chrome-native-host.exe` | 只要运行 `node scripts/install.mjs`，便会自动将其注册并自愈至注册表 |
+
 ## Configuration
 
 All optional, all via the `env` block of the config entry.

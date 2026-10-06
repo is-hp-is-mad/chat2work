@@ -15,6 +15,7 @@
     "install-desktop": "node scripts/install.mjs",
     "uninstall-desktop": "node scripts/install.mjs --remove",
     "doctor": "node scripts/doctor.mjs",
+    "backup-vm": "node scripts/backup-vm.mjs",
     "test": "node --test tests/smoke.mjs"
   },
   "dependencies": {

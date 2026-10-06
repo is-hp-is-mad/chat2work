@@ -18,8 +18,15 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(HERE, '..', '..');
 
-/** Custom gateway edition extension ID */
 export const TARGET_EXTENSION_ID = 'epfodlfclfpfflchbjjlgljipcmnpccp';
+
+export const KNOWN_STATIC_IDS = [
+  'epfodlfclfpfflchbjjlgljipcmnpccp', // Gateway custom key ID
+  'ijjejglpcllkbdcbjkpjaelkckdkgjif', // User local active loaded unpacked extension ID
+  'eiojlicalbnmomfnfckcnfgfnnohipkf', // D:\claude-in-chrome-for-gateway
+  'helnofaajebpepbnlckcdfgoljinkoge', // D:\chat2work\browser-extension\claude-gateway
+  'idfgjjeamlkegmpebnibnkkmkancfbio', // D:\Agent4Chrome\claude-gateway
+];
 
 /** Official Anthropic extension IDs */
 export const OFFICIAL_EXTENSION_IDS = [
@@ -53,7 +60,14 @@ export function calculateExtensionId(dirPath) {
  * Collect all known extension IDs: hardcoded targets, official IDs, and dynamic unpacked paths.
  */
 export function getKnownExtensionIds() {
-  const ids = new Set([TARGET_EXTENSION_ID, ...OFFICIAL_EXTENSION_IDS]);
+  const ids = new Set([TARGET_EXTENSION_ID, ...KNOWN_STATIC_IDS, ...OFFICIAL_EXTENSION_IDS]);
+
+  // Check standalone repository
+  const standaloneDir = path.resolve(PROJECT_ROOT, '..', 'claude-in-chrome-for-gateway');
+  if (fs.existsSync(standaloneDir)) {
+    const sId = calculateExtensionId(standaloneDir);
+    if (sId) ids.add(sId);
+  }
 
   // Check sibling browser-extension directory
   const siblingGatewayDir = path.resolve(PROJECT_ROOT, '..', 'browser-extension', 'claude-gateway');
@@ -62,17 +76,40 @@ export function getKnownExtensionIds() {
     if (siblingId) ids.add(siblingId);
   }
 
-  // Check legacy paths if present
-  for (const legacyPath of ['D:\\Agent4Chrome\\claude-gateway', 'C:\\Agent4Chrome\\claude-gateway']) {
+  // Check common paths if present
+  for (const p of [
+    'D:\\claude-in-chrome-for-gateway',
+    'C:\\claude-in-chrome-for-gateway',
+    'D:\\chat2work\\browser-extension\\claude-gateway',
+    'D:\\Agent4Chrome\\claude-gateway',
+    'C:\\Agent4Chrome\\claude-gateway',
+  ]) {
     try {
-      if (fs.existsSync(legacyPath)) {
-        const legacyId = calculateExtensionId(legacyPath);
-        if (legacyId) ids.add(legacyId);
+      if (fs.existsSync(p)) {
+        const id = calculateExtensionId(p);
+        if (id) ids.add(id);
       }
     } catch {
       /* ignore */
     }
   }
+
+  // Also auto-discover any Chrome profiles where extension settings are stored
+  try {
+    const localAppData = process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local');
+    const syncDir = path.join(localAppData, 'Google', 'Chrome', 'User Data', 'Default', 'Sync Extension Settings');
+    const localDir = path.join(localAppData, 'Google', 'Chrome', 'User Data', 'Default', 'Local Extension Settings');
+    for (const d of [syncDir, localDir]) {
+      if (fs.existsSync(d)) {
+        const list = fs.readdirSync(d);
+        for (const item of list) {
+          if (/^[a-p]{32}$/.test(item)) {
+            ids.add(item);
+          }
+        }
+      }
+    }
+  } catch {}
 
   return Array.from(ids);
 }

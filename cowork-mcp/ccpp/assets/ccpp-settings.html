@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API &amp; Models</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #faf9f7; --surface: #fff; --fg: #1a1a18; --muted: #6b6a66;
+    --line: #e3e1dc; --accent: #c96442; --accent-fg: #fff; --danger: #b3261e;
+    --radius: 10px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a18; --surface: #232320; --fg: #ecebe6; --muted: #a3a19b;
+      --line: #34342f; --accent: #d97757; --accent-fg: #1a1a18; --danger: #f2b8b5;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 720px; margin: 0 auto; padding: 40px 24px 80px; }
+  header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
+  h1 { font-size: 24px; margin: 0; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); font-size: 14px; margin: 0 0 32px; }
+  section {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 20px 22px; margin-bottom: 16px;
+  }
+  h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.06em;
+       color: var(--muted); margin: 0 0 16px; font-weight: 600; }
+  label { display: block; font-weight: 500; margin-bottom: 4px; }
+  .hint { color: var(--muted); font-size: 13px; margin: 0 0 10px; }
+  .field { margin-bottom: 20px; }
+  .field:last-child { margin-bottom: 0; }
+  input[type=text], input[type=password], textarea, select {
+    width: 100%; padding: 9px 11px; font: inherit; font-size: 14px;
+    color: var(--fg); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 8px;
+  }
+  input:focus, textarea:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  textarea { min-height: 120px; resize: vertical; font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 13px; }
+  .modes { display: grid; gap: 8px; }
+  .mode {
+    display: flex; gap: 11px; align-items: flex-start; padding: 12px 14px;
+    border: 1px solid var(--line); border-radius: 8px; cursor: pointer;
+  }
+  .mode:has(input:checked) { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, transparent); }
+  .mode input { margin: 3px 0 0; accent-color: var(--accent); }
+  .mode strong { display: block; font-weight: 550; }
+  .mode span { color: var(--muted); font-size: 13px; }
+  button {
+    font: inherit; font-size: 14px; padding: 8px 15px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer;
+  }
+  button:hover { border-color: var(--muted); }
+  button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+  button.ghost { border: none; background: none; color: var(--muted); padding: 6px 8px; }
+  button.ghost:hover { color: var(--danger); }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .row input { flex: 1; }
+  .models { list-style: none; margin: 0 0 12px; padding: 0; }
+  .models li {
+    display: flex; align-items: center; gap: 10px; padding: 8px 4px 8px 12px;
+    border: 1px solid var(--line); border-radius: 8px; margin-bottom: 6px;
+  }
+  .models .id { font-family: ui-monospace, Consolas, monospace; font-size: 13px; color: var(--muted); }
+  .models .name { font-weight: 500; flex: 1; }
+  .empty { color: var(--muted); font-size: 14px; padding: 10px 0 14px; }
+  .toggle { display: flex; gap: 11px; align-items: flex-start; cursor: pointer; }
+  .toggle input { margin: 3px 0 0; accent-color: var(--accent); }
+  footer {
+    position: sticky; bottom: 0; margin-top: 24px; padding: 14px 0;
+    background: linear-gradient(transparent, var(--bg) 30%);
+    display: flex; align-items: center; gap: 14px;
+  }
+  #status { color: var(--muted); font-size: 14px; }
+  #status.ok { color: var(--accent); }
+  #status.err { color: var(--danger); }
+  .hidden { display: none !important; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1 data-i18n="title">API &amp; Models</h1>
+    <button id="lang" class="ghost">中文</button>
+  </header>
+  <p class="sub" data-i18n="subtitle">Use your own credentials with Claude in Chrome.</p>
+
+  <section>
+    <h2 data-i18n="authSource">Authentication source</h2>
+    <div class="modes">
+      <label class="mode">
+        <input type="radio" name="authMode" value="oauth">
+        <span><strong data-i18n="oauthTitle">OAuth (subscription)</strong>
+        <span data-i18n="oauthDesc">Sign in with your Claude account. The default.</span></span>
+      </label>
+      <label class="mode">
+        <input type="radio" name="authMode" value="apiKey">
+        <span><strong data-i18n="apiKeyTitle">API key</strong>
+        <span data-i18n="apiKeyDesc">Bill usage to an Anthropic API key.</span></span>
+      </label>
+      <label class="mode">
+        <input type="radio" name="authMode" value="authToken">
+        <span><strong data-i18n="authTokenTitle">Custom bearer token</strong>
+        <span data-i18n="authTokenDesc">For a proxy or gateway that speaks the Anthropic API.</span></span>
+      </label>
+    </div>
+  </section>
+
+  <section id="credentials">
+    <h2 data-i18n="credentials">Credentials</h2>
+    <div class="field" id="f-apikey">
+      <label for="apiKey" data-i18n="apiKeyLabel">Anthropic API key</label>
+      <p class="hint" data-i18n="apiKeyHint">Starts with sk-ant-. Stored in this browser's extension storage.</p>
+      <input type="password" id="apiKey" autocomplete="off" spellcheck="false" placeholder="sk-ant-…">
+    </div>
+    <div class="field" id="f-token">
+      <label for="authToken" data-i18n="authTokenLabel">Bearer token</label>
+      <p class="hint" data-i18n="authTokenHint">Sent as Authorization: Bearer.</p>
+      <input type="password" id="authToken" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="field" id="f-baseurl">
+      <label for="baseUrl" data-i18n="baseUrlLabel">Base URL</label>
+      <p class="hint" data-i18n="baseUrlHint">Leave empty for api.anthropic.com. Changing this reloads the side panel.</p>
+      <input type="text" id="baseUrl" autocomplete="off" spellcheck="false" placeholder="https://api.anthropic.com">
+    </div>
+  </section>
+
+  <section id="modelsSection">
+    <h2 data-i18n="models">Models</h2>
+    <p class="hint" data-i18n="modelsHint">Replaces the model picker while you are not using OAuth.</p>
+    <ul class="models" id="modelList"></ul>
+    <p class="empty hidden" id="modelsEmpty" data-i18n="modelsEmpty">No models yet — add one, or fetch the list from your endpoint.</p>
+    <div class="row">
+      <input type="text" id="newModelId" placeholder="claude-sonnet-4-6" spellcheck="false">
+      <input type="text" id="newModelName" placeholder="Sonnet 4.6" spellcheck="false">
+      <button id="addModel" data-i18n="add">Add</button>
+      <button id="fetchModels" data-i18n="fetch">Fetch</button>
+    </div>
+    <div class="field" style="margin-top:20px">
+      <label for="haikuMapping" data-i18n="haikuLabel">Remap Haiku requests to</label>
+      <p class="hint" data-i18n="haikuHint">The extension asks for Haiku for background work. If your endpoint has no Haiku, name a substitute.</p>
+      <input type="text" id="haikuMapping" spellcheck="false" placeholder="claude-sonnet-4-6">
+    </div>
+  </section>
+
+  <section>
+    <h2 data-i18n="prompt">System prompt</h2>
+    <div class="field">
+      <label class="toggle">
+        <input type="checkbox" id="compatMode">
+        <span><strong data-i18n="compatLabel">Compatibility mode</strong>
+        <span class="hint" style="margin:0" data-i18n="compatHint">Prepend the Claude Code identity. Some proxies require it.</span></span>
+      </label>
+    </div>
+    <div class="field">
+      <label for="systemPrompt" data-i18n="promptLabel">Additional system prompt</label>
+      <p class="hint" data-i18n="promptHint">Appended to the built-in prompt. Also used as a fallback if none is provided.</p>
+      <textarea id="systemPrompt" spellcheck="false"></textarea>
+    </div>
+  </section>
+
+  <footer>
+    <button class="primary" id="save" data-i18n="save">Save</button>
+    <button id="reset" data-i18n="reset">Reset to OAuth</button>
+    <span id="status"></span>
+  </footer>
+</main>
+<script src="ccpp-settings.js"></script>
+</body>
+</html>

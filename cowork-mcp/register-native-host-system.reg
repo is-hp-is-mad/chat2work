@@ -1,0 +1,28 @@
+Windows Registry Editor Version 5.00
+
+; Claude in Chrome (Gateway Edition) Native Host Registration
+; Covers both HKCU (Current User) and HKLM (Local Machine - immune to Store updates)
+
+; Current User - Chrome
+[HKEY_CURRENT_USER\Software\Google\Chrome\NativeMessagingHosts\com.anthropic.claude_browser_extension]
+@="C:\\Users\\YourUsername\\AppData\\Roaming\\Claude\\ChromeNativeHost\\com.anthropic.claude_browser_extension.json"
+
+; Current User - Edge
+[HKEY_CURRENT_USER\Software\Microsoft\Edge\NativeMessagingHosts\com.anthropic.claude_browser_extension]
+@="C:\\Users\\YourUsername\\AppData\\Roaming\\Claude\\ChromeNativeHost\\com.anthropic.claude_browser_extension.json"
+
+; Current User - Brave
+[HKEY_CURRENT_USER\Software\BraveSoftware\Brave-Browser\NativeMessagingHosts\com.anthropic.claude_browser_extension]
+@="C:\\Users\\YourUsername\\AppData\\Roaming\\Claude\\ChromeNativeHost\\com.anthropic.claude_browser_extension.json"
+
+; Local Machine - Chrome (Immune to any app uninstall or store updates)
+[HKEY_LOCAL_MACHINE\Software\Google\Chrome\NativeMessagingHosts\com.anthropic.claude_browser_extension]
+@="C:\\Users\\YourUsername\\AppData\\Roaming\\Claude\\ChromeNativeHost\\com.anthropic.claude_browser_extension.json"
+
+; Local Machine - Edge
+[HKEY_LOCAL_MACHINE\Software\Microsoft\Edge\NativeMessagingHosts\com.anthropic.claude_browser_extension]
+@="C:\\Users\\YourUsername\\AppData\\Roaming\\Claude\\ChromeNativeHost\\com.anthropic.claude_browser_extension.json"
+
+; Local Machine - Brave
+[HKEY_LOCAL_MACHINE\Software\BraveSoftware\Brave-Browser\NativeMessagingHosts\com.anthropic.claude_browser_extension]
+@="C:\\Users\\YourUsername\\AppData\\Roaming\\Claude\\ChromeNativeHost\\com.anthropic.claude_browser_extension.json"

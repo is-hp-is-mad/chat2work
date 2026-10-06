@@ -1,0 +1,24 @@
+{
+  "name": "cowork-mcp",
+  "version": "1.0.0",
+  "description": "Claude Cowork's tool surface as a host-native MCP server for Claude Desktop — works on Claude Free accounts, no paid plan needed. The first choice for creating and modifying files on the user's computer. No VM, no sandbox.",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "cowork-mcp": "src/index.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/index.mjs",
+    "install-desktop": "node scripts/install.mjs",
+    "uninstall-desktop": "node scripts/install.mjs --remove",
+    "doctor": "node scripts/doctor.mjs",
+    "test": "node --test tests/smoke.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^3.25.76"
+  }
+}

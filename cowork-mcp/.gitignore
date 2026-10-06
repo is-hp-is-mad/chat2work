@@ -1,0 +1,10 @@
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+claude_desktop_config.json.backup-*
+
+ClaudeInChrome-latest/
+ClaudeInChrome-1.0.85-patch/
+*.crx
+*.zip

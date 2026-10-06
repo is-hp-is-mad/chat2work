@@ -313,7 +313,19 @@ export async function screenshot({ maxDimension = 1568, quality = 75, region } =
   return lastShot;
 }
 
-/** Map a model-supplied screenshot coordinate to a physical screen point. */
+/**
+ * Map a model-supplied screenshot coordinate to a physical screen point.
+ *
+ * Windows High-DPI compensation:
+ * When a screen is rendered with DPI scaling (e.g. 150%, factor = 1.5) and downsampled
+ * to fit maxDimension (e.g. 2560x1440 -> 1568x882, screenshot ratio = 1568/2560 = 0.6125),
+ * Windows OS input injection (SetCursorPos / SendInput) applies the system DPI multiplier (1.5)
+ * instead of the screenshot-to-physical ratio (1.6327). This produces an automatic drift towards
+ * the top-left by a factor of (1.5 / 1.6327 ≈ 0.9187).
+ *
+ * To eliminate this drift and hit UI elements exactly where Claude intends, toScreen automatically
+ * compensates for the DPI-to-screenshot ratio unless disabled by COWORK_CU_AUTO_DPI=0.
+ */
 export function toScreen(x, y) {
   if (!lastShot) {
     throw new Error(
@@ -321,16 +333,34 @@ export function toScreen(x, y) {
         'Take a screenshot first — coordinates you give are interpreted in screenshot space.',
     );
   }
-  const { originX, originY, scale, width, height } = lastShot;
+  const { originX, originY, scale, width, height, sourceWidth, sourceHeight, dpiScale } = lastShot;
   if (x < 0 || y < 0 || x > width || y > height) {
     throw new Error(
       `Coordinate (${x}, ${y}) is outside the last screenshot, which is ${width}x${height}. ` +
         'Give coordinates as they appear in the image you were shown.',
     );
   }
+
+  // Base physical coordinate from downsampled screenshot to actual screen
+  let targetX = originX + x / scale;
+  let targetY = originY + y / scale;
+
+  // Auto-compensate Windows DPI drift if enabled (default on)
+  const autoCompensate = process.env.COWORK_CU_AUTO_DPI !== '0';
+  if (autoCompensate && process.platform === 'win32' && dpiScale && dpiScale > 1.0 && scale < 1.0) {
+    const theoreticalMultiplier = 1 / scale; // e.g. 2560 / 1568 ≈ 1.6327
+    if (Math.abs(theoreticalMultiplier - dpiScale) > 0.01) {
+      // Injected input factor is dpiScale, desired physical factor is theoreticalMultiplier.
+      // Compensation factor = theoreticalMultiplier / dpiScale (e.g. 1.6327 / 1.5 ≈ 1.0885 = 1 / 0.9187)
+      const compFactor = theoreticalMultiplier / dpiScale;
+      targetX = originX + (x / scale) * compFactor;
+      targetY = originY + (y / scale) * compFactor;
+    }
+  }
+
   return {
-    x: Math.round(originX + x / scale),
-    y: Math.round(originY + y / scale),
+    x: Math.round(targetX),
+    y: Math.round(targetY),
   };
 }
 

@@ -64,6 +64,23 @@ public static class CU
 
     public static void DpiAware() { try { SetProcessDPIAware(); } catch {} }
 
+    [DllImport("user32.dll")] static extern IntPtr GetDC(IntPtr hwnd);
+    [DllImport("user32.dll")] static extern int ReleaseDC(IntPtr hwnd, IntPtr hdc);
+    [DllImport("gdi32.dll")] static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
+
+    public static double DpiScale()
+    {
+        try
+        {
+            SetProcessDPIAware();
+            IntPtr hdc = GetDC(IntPtr.Zero);
+            int logx = GetDeviceCaps(hdc, 88);
+            ReleaseDC(IntPtr.Zero, hdc);
+            return (double)logx / 96.0;
+        }
+        catch { return 1.0; }
+    }
+
     public static void Move(int x, int y) { SetCursorPos(x, y); }
 
     public static int[] Position() { POINT p; GetCursorPos(out p); return new int[] { p.X, p.Y }; }
@@ -233,9 +250,11 @@ function Save-Screenshot {
     $params.Param[0] = New-Object System.Drawing.Imaging.EncoderParameter([System.Drawing.Imaging.Encoder]::Quality, [long]$Quality)
     $out.Save($Path, $codec, $params)
 
+    $dpiScale = [CU]::DpiScale()
     $result = [pscustomobject]@{
         path = $Path; width = $out.Width; height = $out.Height
         sourceWidth = $W; sourceHeight = $H; originX = $X; originY = $Y; scale = $scale
+        dpiScale = $dpiScale
     }
     $out.Dispose()
     return $result

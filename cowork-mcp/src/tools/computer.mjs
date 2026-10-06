@@ -542,9 +542,8 @@ export const actionShape = {
     .optional()
     .describe(
       '[x, y] in the coordinate space of the most recent screenshot. ' +
-      'NOTE on Windows High-DPI (e.g. 150% scaling on 2K 2560x1440): input injection may land slightly top-left ' +
-      '(actual ≈ target * 0.92, ratio 1.5 / 1.6327). If your click lands slightly high/left, compensate by target / 0.92 ' +
-      '(multiply by ~1.087). Do NOT rely on cursor_position to verify this offset as cursor_position reads back theoretical values.',
+      'Coordinates are automatically scaled and hardware-compensated for Windows High-DPI displays ' +
+      '(auto-corrects for 150% scaling drift). Always provide the exact [x, y] as seen in the screenshot image.',
     ),
   start_coordinate: z.array(z.number()).min(2).max(2).optional().describe('[x, y] where a drag begins.'),
   text: z
@@ -592,11 +591,8 @@ export function registerComputerTools(server) {
       description:
         'Official Anthropic Claude Computer Use tool. Drive the host screen, mouse, keyboard, and clipboard.\n\n' +
         'Workflow: Start with a screenshot — every coordinate you give is interpreted in the coordinate space of ' +
-        'the most recent screenshot, and is scaled back to the display automatically. Most mutating actions return ' +
-        'a fresh screenshot so one call is act-and-observe.\n\n' +
-        '⚠️ Windows High-DPI Note: On 150% scaled displays (e.g. 2560x1440 downscaled to 1568x882), clicks may land ' +
-        'slightly top-left (factor ~0.92, ratio 1.5 / 1.6327). If a click misses towards top-left, compensate by target / 0.92. ' +
-        'Do not use cursor_position to diagnose as it returns theoretical coordinates.\n\n' +
+        'the most recent screenshot, and is scaled back to the display automatically. Built-in High-DPI compensation ' +
+        'automatically adjusts for Windows 150% scaling ratios so you can click visual elements directly without manual offsets.\n\n' +
         'Supported actions:\n' +
         '- screenshot: Take a screenshot of the active or specified display.\n' +
         '- zoom: Zoom into a region [x0, y0, x1, y1] to inspect details or small text.\n' +

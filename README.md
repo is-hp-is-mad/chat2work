@@ -7,7 +7,7 @@
 [![Node.js: >=20](https://img.shields.io/badge/Node.js-%3E%3D20-green.svg)](https://nodejs.org)
 [![Community: LINUX DO](https://img.shields.io/badge/Community-LINUX%20DO-ff6b4a.svg)](https://linux.do)
 
-**chat2work** 是为 Windows 平台下的 **Claude Desktop** 量身打造的一体化本地工作站集成。它打破了官方对付费订阅（Pro / Team / Enterprise）的强门槛，让 **Claude 免费账号（Free Plan）** 也能直接在宿主机上获得官方级 **Claude Cowork** 与 **Claude in Chrome** 的全部生产力能力（48 个核心工具）。
+**chat2work** 是专为 **Windows 平台**下的 **Claude Desktop** 量身打造的一体化本地工作站集成。因涉及底层 Windows Cowork 虚拟机桥接、命名管道通信、Native Host 注册表自愈与本地宿主机键鼠自动化，**本项目仅限 Windows 平台使用（Windows 10 / 11 x64），不兼容 macOS 与 Linux**。它打破了官方对付费订阅（Pro / Team / Enterprise）的强门槛，让 **Claude 免费账号（Free Plan）** 也能直接在 Windows 宿主机上获得官方级 **Claude Cowork** 与 **Claude in Chrome** 的全部生产力能力（48 个核心工具）。
 
 ---
 
@@ -155,12 +155,10 @@ cd D:\chat2work\cowork-mcp
 npm install
 ```
 
-##### 2. 定位 Claude Desktop 配置文件
-Claude Desktop 的配置文件路径如下：
-- **Windows**：`%APPDATA%\Claude\claude_desktop_config.json`  
-  *(快捷打开：按 `Win + R` 键，输入 `%APPDATA%\Claude` 并回车即可找到该文件；若文件不存在可手动新建)*
-- **macOS**：`~/Library/Application Support/Claude/claude_desktop_config.json`
-- **Linux**：`~/.config/Claude/claude_desktop_config.json`
+##### 2. 定位 Claude Desktop 配置文件（Windows 专享）
+在 Windows 运行窗口或资源管理器中打开配置文件：
+- **配置文件路径**：`%APPDATA%\Claude\claude_desktop_config.json`  
+- **快捷打开方法**：按键盘快捷键 `Win + R`，输入 `%APPDATA%\Claude` 并回车即可打开配置目录（若 `claude_desktop_config.json` 尚不存在，可直接新建一个空白文本文件并重命名）。
 
 ##### 3. 手动编辑添加 MCP 服务端
 使用任意文本编辑器打开 `claude_desktop_config.json`，在 `mcpServers` 节点中加入 `cowork` 配置项：

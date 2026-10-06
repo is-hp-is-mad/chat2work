@@ -93,11 +93,9 @@ Or edit `claude_desktop_config.json` yourself:
 }
 ```
 
-The config file lives at:
+The config file lives at (Windows):
 
-- **Windows** `%APPDATA%\Claude\claude_desktop_config.json`
-- **macOS** `~/Library/Application Support/Claude/claude_desktop_config.json`
-- **Linux** `~/.config/Claude/claude_desktop_config.json`
+- `%APPDATA%\Claude\claude_desktop_config.json`
 
 ## The workspace
 

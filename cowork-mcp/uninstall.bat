@@ -8,20 +8,13 @@ echo ============================================================
 echo.
 
 set "NODE_EXE="
-where node >nul 2>&1
-if %ERRORLEVEL% equ 0 (
-    set "NODE_EXE=node"
-) else (
-    if exist "%ProgramFiles%\nodejs\node.exe" (
-        set "NODE_EXE=%ProgramFiles%\nodejs\node.exe"
-    ) else if exist "%ProgramFiles(x86)%\nodejs\node.exe" (
-        set "NODE_EXE=%ProgramFiles(x86)%\nodejs\node.exe"
-    ) else if exist "%LocalAppData%\Programs\nodejs\node.exe" (
-        set "NODE_EXE=%LocalAppData%\Programs\nodejs\node.exe"
-    )
-)
+where node >nul 2>&1 && set "NODE_EXE=node"
+if not defined NODE_EXE if exist "%ProgramFiles%\nodejs\node.exe" set "NODE_EXE=%ProgramFiles%\nodejs\node.exe"
+set "X86_PATH=%ProgramFiles(x86)%"
+if not defined NODE_EXE if defined X86_PATH if exist "%X86_PATH%\nodejs\node.exe" set "NODE_EXE=%X86_PATH%\nodejs\node.exe"
+if not defined NODE_EXE if exist "%LocalAppData%\Programs\nodejs\node.exe" set "NODE_EXE=%LocalAppData%\Programs\nodejs\node.exe"
 
-if "%NODE_EXE%"=="" (
+if not defined NODE_EXE (
     echo [ERROR] Node.js was not found. Cannot run uninstaller.
     pause
     exit /b 1

@@ -22,3 +22,7 @@ Desktop.ini
 *.tar.gz
 *.vhdx
 claudevm.bundle/
+
+# Python cache
+__pycache__/
+*.pyc

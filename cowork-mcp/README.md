@@ -52,8 +52,8 @@ memory sync, teach mode and everything else Cowork gates behind a flag — is in
 Requires **Node 20+** on your computer.
 
 ### Windows (One-Click)
-1. Place `cowork-mcp` in your desired directory (e.g. `D:\chat2work\cowork-mcp`).
-2. Double-click **`install.bat`** (it automatically detects Node.js, configures Claude Desktop, and registers the server).
+1. Place `cowork-mcp` in your desired directory (e.g. `C:\path\to\cowork-mcp`).
+2. Double-click **`install.bat`** (it automatically detects Node.js, configures Claude Desktop, and registers the server using current actual path).
 3. **Restart Claude Desktop** completely (exit from the system tray icon, then reopen).
 
 To check your environment: double-click **`doctor.bat`**.  
@@ -69,12 +69,12 @@ npm run doctor                 # verifies environment & tools
 ### Install options
 
 ```bash
-node scripts/install.mjs --home "D:\Work\ClaudeFiles"   # where the workspace lives
-node scripts/install.mjs --allow "D:\code"              # extra folder outside the home
-node scripts/install.mjs --allow-all                    # no path guard at all
-node scripts/install.mjs --brave-key BSA...             # better web search
-node scripts/install.mjs --print                        # show, do not write
-node scripts/install.mjs --remove                       # uninstall
+node scripts/install.mjs --home "C:\Users\<user>\ClaudeFiles" # where the workspace lives
+node scripts/install.mjs --allow "C:\code"                    # extra folder outside the home
+node scripts/install.mjs --allow-all                          # no path guard at all
+node scripts/install.mjs --brave-key BSA...                   # better web search
+node scripts/install.mjs --print                              # show, do not write
+node scripts/install.mjs --remove                             # uninstall
 ```
 
 Or edit `claude_desktop_config.json` yourself:
@@ -84,9 +84,9 @@ Or edit `claude_desktop_config.json` yourself:
   "mcpServers": {
     "cowork": {
       "command": "node",
-      "args": ["D:\\chat2work\\cowork-mcp\\src\\index.mjs"],
+      "args": ["<path-to-your-project>\\cowork-mcp\\src\\index.mjs"],
       "env": {
-        "COWORK_HOME": "C:\\Users\\you\\Claude"
+        "COWORK_HOME": "C:\\Users\\<user>\\Claude"
       }
     }
   }

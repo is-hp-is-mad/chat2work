@@ -123,10 +123,10 @@ chat2work/
 1. 打开 Chrome 浏览器，在地址栏输入 `chrome://extensions` 并回车。
 2. 在右上角打开 **「开发者模式」** 开关。
 3. 点击左上角的 **「加载已解压的扩展程序」** 按钮。
-4. 在弹出的文件选择器中，选择独立扩展目录或本工程目录：
+4. 在弹出的文件选择器中，选择本工程下的扩展目录（或独立开源的 [Agent4Chrome](https://github.com/is-hp-is-mad/Agent4Chrome) 目录）：
    ```text
-   D:\claude-in-chrome-for-gateway
-   (或 D:\chat2work\browser-extension\claude-gateway)
+   <你的克隆路径>\chat2work\browser-extension\claude-gateway
+   (或独立的 Agent4Chrome 解压目录)
    ```
 5. 扩展加载完成后，点击浏览器右上角的扩展图标打开 Claude 侧边栏。
 6. 点击侧边栏右上角的 **「⚙ 网关设置」**（或在原生菜单中点击 Settings），在打开的配置面板中填写：
@@ -140,10 +140,11 @@ chat2work/
 ### 第二步：一键配置 Cowork MCP 服务端
 
 #### 方式 A：鼠标双击一键安装（推荐）
-直接双击运行 `cowork-mcp` 目录下的 **`install.bat`**：
+直接进入项目下的 `cowork-mcp` 目录，鼠标双击运行 **`install.bat`**：
 ```cmd
-D:\chat2work\cowork-mcp\install.bat
+install.bat
 ```
+*(无论你把项目克隆或解压到哪个磁盘/目录，脚本都会自动识别当前真实路径并注册)*
 安装脚本会自动：
 1. 校验当前机器的 Node.js 运行环境与版本。
 2. 自动安装 npm 依赖包。
@@ -157,7 +158,7 @@ D:\chat2work\cowork-mcp\install.bat
 ##### 1. 安装 Node.js 依赖
 打开终端（PowerShell 或 CMD），进入 `cowork-mcp` 目录并安装依赖包：
 ```bash
-cd D:\chat2work\cowork-mcp
+cd cowork-mcp
 npm install
 ```
 
@@ -174,9 +175,9 @@ npm install
   "mcpServers": {
     "cowork": {
       "command": "node",
-      "args": ["D:\\chat2work\\cowork-mcp\\src\\index.mjs"],
+      "args": ["<你的项目目录>\\cowork-mcp\\src\\index.mjs"],
       "env": {
-        "COWORK_HOME": "C:\\Users\\YourUsername\\Claude",
+        "COWORK_HOME": "C:\\Users\\<你的用户名>\\Claude",
         "COWORK_ALLOW_ALL": "0"
       }
     }
@@ -185,7 +186,7 @@ npm install
 ```
 
 > **📌 配置项说明**：
-> - `args`：填写您本地 `cowork-mcp\src\index.mjs` 的**绝对路径**（Windows 路径中的反斜杠需双写转义 `\\`）。
+> - `args`：填写您本地 `cowork-mcp\src\index.mjs` 的**绝对路径**（Windows 路径中的反斜杠需双写转义 `\\`，例如 `C:\\code\\chat2work\\cowork-mcp\\src\\index.mjs`）。
 > - `COWORK_HOME`（可选）：指定 Claude 工作区根目录，存放 Projects、Artifacts、Skills、Memory 等。留空默认使用 `~/Claude`。
 > - `COWORK_ALLOW_ALL`（可选）：默认为 `"0"`（受安全沙盒 Path Guard 保护，防止访问工作区外文件）；设为 `"1"` 可允许访问宿主机所有磁盘目录。
 > - `BRAVE_API_KEY`（可选）：若配置了 Brave Search API Key，可增强 Claude 的实时联网搜索能力。
@@ -232,7 +233,7 @@ npm run backup-vm
 - **一键诊断**：双击运行 `cowork-mcp\doctor.bat`，即可一键排查 Node 环境、Native Messaging 注册表状态及依赖健康度。
 - **回归测试套件**：运行内置的 154 项全量自动化测试：
   ```cmd
-  cd D:\chat2work\cowork-mcp
+  cd cowork-mcp
   node tests/smoke.mjs
   ```
   *(涵盖文件原子操作、持久化 Shell、Notebook、REPL、Office 文档构建、Native Messaging 通信等 154 项全面测试)*

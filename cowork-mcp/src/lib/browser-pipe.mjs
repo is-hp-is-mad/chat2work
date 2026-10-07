@@ -9,7 +9,14 @@
  */
 import net from 'node:net';
 import crypto from 'node:crypto';
-import { ensureChromeHostRegistered } from './chrome-host.mjs';
+import {
+  ensureChromeHostRegistered,
+  isBrowserRunning,
+  launchBrowser,
+  wakeBrowserExtension,
+  TARGET_EXTENSION_ID,
+  ALL_EXTENSION_IDS,
+} from './chrome-host.mjs';
 
 export function getBrowserPipeName() {
   const user = process.env.USERNAME || process.env.USER || 'default';
@@ -80,13 +87,29 @@ export class BrowserPipeClient {
         return sock;
       } catch (err) {
         if (err.code === 'ENOENT') {
-          // Self-heal: ensure Native Host registry keys and manifest are active
+          // 1. Self-heal: ensure Native Host registry keys and manifest are active
           try {
             ensureChromeHostRegistered();
           } catch {}
 
-          // Poll up to 3 times for Chrome to launch native host and pipe to become available
-          for (let attempt = 1; attempt <= 3; attempt++) {
+          // 2. Check if browser is running. If not, auto-launch it!
+          let autoLaunched = false;
+          let launchInfo = null;
+          try {
+            const status = isBrowserRunning();
+            if (!status.running) {
+              launchInfo = launchBrowser();
+              if (launchInfo && launchInfo.ok) {
+                autoLaunched = true;
+              }
+            }
+          } catch {}
+
+          // 3. Adaptive polling for Chrome Native Host and Named Pipe to become ready (up to 15s)
+          const maxAttempts = 25;
+          let wakeAttempted = false;
+
+          for (let attempt = 1; attempt <= maxAttempts; attempt++) {
             await new Promise((r) => setTimeout(r, 600));
             try {
               const sock = await this._connectSingle();
@@ -94,14 +117,27 @@ export class BrowserPipeClient {
             } catch {
               /* wait for next attempt */
             }
+
+            // On attempt 8 (~4.8s in), if still not connected, try waking extension
+            if (attempt === 8 && !wakeAttempted) {
+              wakeAttempted = true;
+              try {
+                for (const extId of ALL_EXTENSION_IDS.slice(0, 2)) {
+                  wakeBrowserExtension(extId);
+                }
+              } catch {}
+            }
           }
 
           throw new Error(
             'Cannot connect to Claude in Chrome extension (Named Pipe not found).\n' +
+              (autoLaunched
+                ? `Attempted to auto-launch ${launchInfo?.browser || 'Chrome'}, but the named pipe did not become ready within 15 seconds.\n`
+                : 'Attempted automatic self-heal, but the named pipe did not become ready within 15 seconds.\n') +
               'Please ensure:\n' +
-              '1. Google Chrome is running.\n' +
-              '2. The extension "Claude in Chrome (Gateway Edition)" is loaded.\n' +
-              '3. Reload the extension once at chrome://extensions if you just updated it.',
+              '1. Google Chrome (or Edge/Brave) is installed and can run.\n' +
+              '2. The extension "Claude in Chrome (Gateway Edition)" is loaded in chrome://extensions.\n' +
+              '3. Verify that the extension is enabled.',
           );
         }
         throw err;

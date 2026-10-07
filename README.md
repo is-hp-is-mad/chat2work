@@ -37,6 +37,7 @@
   - **语义轨（Semantic / A11y Tree）**：极速、低 Token 消耗的 DOM 树导航、表单自动填写与智能点击（`ReadPage`, `FormInput`, `BrowserClick`, `BrowserBatch`）。
   - **视觉轨（Visual Inspection）**：高分辨率视口截屏与整页长图（`BrowserScreenshot` / `PageScreenshot`）。
 - **静默后台唤醒机制**：Chrome 窗口或标签页处于最小化、后台遮挡状态时，依旧能按需渲染无感唤醒，并将清晰画面以 Base64 流实时送入 Claude Desktop。
+- **🚀 浏览器与通道全自动拉起与自愈**：当调用浏览器工具且检测到 Chrome 未运行或命名管道离线时，服务端自动探测 Chrome/Edge/Brave 并自愈启动浏览器、自动唤醒扩展 Native Messaging 管道，辅以扩展端后台心跳保活，实现零人工点击的透明即点即用。
 
 ### 3. 🧩 Claude in Chrome for Gateway（浏览器插件网关版）
 - **独立分仓开源**：浏览器插件现已独立打包发布为 [`Claude in Chrome for Gateway`](../claude-in-chrome-for-gateway)，仅含纯净发行文件。

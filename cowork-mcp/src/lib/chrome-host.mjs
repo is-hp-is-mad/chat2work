@@ -12,7 +12,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import crypto from 'node:crypto';
-import { spawnSync } from 'node:child_process';
+import { spawnSync, spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -388,4 +388,143 @@ export function getChromeHostStatus() {
     origins,
     registeredBrowsers,
   };
+}
+
+/**
+ * Query Windows Registry value via reg.exe.
+ */
+export function queryRegistryValue(keyPath, valueName = '') {
+  if (process.platform !== 'win32') return null;
+  try {
+    const args = ['query', keyPath];
+    if (valueName) {
+      args.push('/v', valueName);
+    } else {
+      args.push('/ve');
+    }
+    const res = spawnSync('reg.exe', args, { encoding: 'utf8', timeout: 5000 });
+    if (res.status === 0 && res.stdout) {
+      const lines = res.stdout.split(/\r?\n/);
+      for (const line of lines) {
+        const match = line.trim().match(/REG_[A-Z_]+\s+(.+)$/);
+        if (match) return match[1].trim();
+      }
+    }
+  } catch {}
+  return null;
+}
+
+/**
+ * Locate installed browser executable on Windows (Chrome -> Edge -> Brave).
+ */
+export function findBrowserExecutable() {
+  if (process.platform !== 'win32') return null;
+
+  const localAppData = process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local');
+  const programFiles = process.env['ProgramFiles'] || 'C:\\Program Files';
+  const programFilesX86 = process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)';
+
+  // 1. Google Chrome
+  const chromeReg =
+    queryRegistryValue('HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\chrome.exe') ||
+    queryRegistryValue('HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\chrome.exe');
+  if (chromeReg && fs.existsSync(chromeReg)) return { browser: 'Chrome', exe: chromeReg };
+
+  for (const c of [
+    path.join(programFiles, 'Google', 'Chrome', 'Application', 'chrome.exe'),
+    path.join(programFilesX86, 'Google', 'Chrome', 'Application', 'chrome.exe'),
+    path.join(localAppData, 'Google', 'Chrome', 'Application', 'chrome.exe'),
+  ]) {
+    try {
+      if (fs.existsSync(c)) return { browser: 'Chrome', exe: c };
+    } catch {}
+  }
+
+  // 2. Microsoft Edge
+  const edgeReg =
+    queryRegistryValue('HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\msedge.exe') ||
+    queryRegistryValue('HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\msedge.exe');
+  if (edgeReg && fs.existsSync(edgeReg)) return { browser: 'Edge', exe: edgeReg };
+
+  for (const c of [
+    path.join(programFilesX86, 'Microsoft', 'Edge', 'Application', 'msedge.exe'),
+    path.join(programFiles, 'Microsoft', 'Edge', 'Application', 'msedge.exe'),
+  ]) {
+    try {
+      if (fs.existsSync(c)) return { browser: 'Edge', exe: c };
+    } catch {}
+  }
+
+  // 3. Brave Browser
+  for (const c of [
+    path.join(programFiles, 'BraveSoftware', 'Brave-Browser', 'Application', 'brave.exe'),
+    path.join(localAppData, 'BraveSoftware', 'Brave-Browser', 'Application', 'brave.exe'),
+  ]) {
+    try {
+      if (fs.existsSync(c)) return { browser: 'Brave', exe: c };
+    } catch {}
+  }
+
+  return null;
+}
+
+/**
+ * Check if a supported browser process is currently running.
+ */
+export function isBrowserRunning() {
+  if (process.platform !== 'win32') return { running: false };
+  try {
+    const res = spawnSync('tasklist.exe', ['/FO', 'CSV', '/NH'], { encoding: 'utf8', timeout: 5000 });
+    if (res.status === 0 && res.stdout) {
+      const lower = res.stdout.toLowerCase();
+      if (lower.includes('"chrome.exe"')) return { running: true, browser: 'Chrome' };
+      if (lower.includes('"msedge.exe"')) return { running: true, browser: 'Edge' };
+      if (lower.includes('"brave.exe"')) return { running: true, browser: 'Brave' };
+    }
+  } catch {}
+  return { running: false };
+}
+
+/**
+ * Launch the browser process detached if it is not currently running.
+ */
+export function launchBrowser(targetUrl = '') {
+  const browserInfo = findBrowserExecutable();
+  if (!browserInfo) return { ok: false, reason: 'No compatible browser found' };
+
+  try {
+    const args = [];
+    if (targetUrl) {
+      args.push(targetUrl);
+    }
+    const child = spawn(browserInfo.exe, args, {
+      detached: true,
+      stdio: 'ignore',
+      windowsHide: false,
+    });
+    child.unref();
+    return { ok: true, browser: browserInfo.browser, exe: browserInfo.exe, pid: child.pid };
+  } catch (err) {
+    return { ok: false, reason: err.message };
+  }
+}
+
+/**
+ * Ping the browser to wake up the extension service worker.
+ */
+export function wakeBrowserExtension(extensionId = TARGET_EXTENSION_ID) {
+  const browserInfo = findBrowserExecutable();
+  if (!browserInfo) return false;
+  try {
+    const target = `chrome-extension://${extensionId}/options.html`;
+    const child = spawn(browserInfo.exe, [target], {
+      detached: true,
+      stdio: 'ignore',
+      windowsHide: false,
+    });
+    child.unref();
+    return true;
+  } catch {
+    return false;
+  }
 }
